@@ -7,11 +7,37 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import sigmoid_kernel
 import joblib
 import re
+import io
 from rapidfuzz import process, fuzz
+from supabase import create_client, Client
+
+url = "https://vxwxipjgohswqiylxisz.supabase.co"  # Ganti dengan URL proyek Anda
+key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4d3hpcGpnb2hzd3FpeWx4aXN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY5NTAyNjksImV4cCI6MjA1MjUyNjI2OX0.sUd-bnlBrqXSrB_r1sd7h-es1x04wqLLFZIoJrWkEwE"  # Ganti dengan kunci API
+supabase: Client = create_client(url, key)
+
 
 # %% Load Data
-fulldata = pd.read_csv('C:/SEMESTER 5/STKI/Tugas 3 STKI/data/fulldata.csv')
-anime = pd.read_csv('C:/SEMESTER 5/STKI/Tugas 3 STKI/data/anime.csv')
+fulldata = pd.read_csv('fulldata.csv')
+
+def get_anime_dataset():
+    try:
+         # Mengambil file dari bucket storage
+        response = supabase.storage \
+            .from_('anime') \
+            .download('anime.csv')
+        
+        # Membaca data CSV menggunakan pandas
+        df = pd.read_csv(io.BytesIO(response))
+        
+        return df
+    
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return None
+
+# Menjalankan fungsi
+anime = get_anime_dataset()
+
 
 # %% Preprocessing Data
 data = fulldata.copy()

@@ -5,7 +5,7 @@ import pandas as pd
 
 folder_tujuan_path = os.path.abspath('./modelling')
 sys.path.append(folder_tujuan_path)
-from modelling import give_recommendation
+from modelling import give_recommendation,get_anime_dataset
 
 # Konfigurasi halaman Streamlit
 st.set_page_config(
@@ -18,7 +18,7 @@ st.title('Sistem Rekomendasi Anime')
 st.write('List Anime')
 
 # Membaca dataset anime
-df = pd.read_csv('C:/SEMESTER 5/STKI/Tugas 3 STKI/data/anime.csv')
+df = get_anime_dataset()
 
 # Pilih kolom yang relevan
 dataByColumn = df[["name", "rating","genre"]]
