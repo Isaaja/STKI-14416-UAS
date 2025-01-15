@@ -21,7 +21,7 @@ st.write('List Anime')
 df = pd.read_csv('C:/SEMESTER 5/STKI/Tugas 3 STKI/data/anime.csv')
 
 # Pilih kolom yang relevan
-dataByColumn = df[["name", "genre"]]
+dataByColumn = df[["name", "rating","genre"]]
 
 # Tampilkan data anime di Streamlit
 st.dataframe(dataByColumn)
