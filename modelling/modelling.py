@@ -5,11 +5,10 @@ from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import sigmoid_kernel
-import joblib
 import re
-import io
 from rapidfuzz import process, fuzz
 from supabase import create_client, Client
+import io
 
 url = "https://vxwxipjgohswqiylxisz.supabase.co"  # Ganti dengan URL proyek Anda
 key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4d3hpcGpnb2hzd3FpeWx4aXN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY5NTAyNjksImV4cCI6MjA1MjUyNjI2OX0.sUd-bnlBrqXSrB_r1sd7h-es1x04wqLLFZIoJrWkEwE"  # Ganti dengan kunci API
@@ -63,6 +62,7 @@ data["name"] = data["name"].apply(text_cleaning)
 # Create pivot table
 data_pivot = data.pivot_table(index="name", columns="user_id", values="user_rating").fillna(0)
 
+
 # %% Collaborative Filtering (KNN)
 data_matrix = csr_matrix(data_pivot.values)
 
@@ -102,6 +102,7 @@ def knn_recommendation(title, n_neighbors=6):
     print(recommendation)
     return recommendation
 
+
 # %% Content-Based Filtering
 # Process genres with TF-IDF
 tfv = TfidfVectorizer(min_df=3, strip_accents="unicode", analyzer="word",
@@ -114,22 +115,15 @@ rec_data.reset_index(drop=True, inplace=True)
 genres = rec_data["genre"].str.split(", | , | ,").astype(str)
 tfv_matrix = tfv.fit_transform(genres)
 
-# Compute sigmoid kernel
-sig_file_path = 'C:/SEMESTER 5/STKI/Tugas 3 STKI/data/sig_kernel.pkl'
-try:
-    # Load precomputed sigmoid kernel if available
-    sig = joblib.load(sig_file_path)
-    print("Loaded precomputed sigmoid kernel.")
-except FileNotFoundError:
-    sig = sigmoid_kernel(tfv_matrix, tfv_matrix)
-    joblib.dump(sig, sig_file_path)
-    print("Computed and saved sigmoid kernel.")
+# Function to compute sigmoid kernel on the fly
+def compute_sigmoid_kernel(tfv_matrix):
+    return sigmoid_kernel(tfv_matrix, tfv_matrix)
 
 # Map titles to indices
 rec_indices = pd.Series(rec_data.index, index=rec_data["name"]).drop_duplicates()
 
 # Function to get Content-Based recommendations
-def give_recommendation(title, sig=sig):
+def give_recommendation(title):
     # Search title with fuzzy matching
     title_match = process.extractOne(title, rec_indices.index, scorer=fuzz.ratio)
     if not title_match or title_match[1] < 70:  # Adjust threshold as needed
@@ -138,6 +132,10 @@ def give_recommendation(title, sig=sig):
 
     matched_title = title_match[0]
     idx = rec_indices[matched_title]
+    
+    # Compute sigmoid kernel without saving
+    sig = compute_sigmoid_kernel(tfv_matrix)
+    
     sig_score = list(enumerate(sig[idx]))
     sig_score = sorted(sig_score, key=lambda x: x[1], reverse=True)[1:11]
     anime_indices = [i[0] for i in sig_score]
