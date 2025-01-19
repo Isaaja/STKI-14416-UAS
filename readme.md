@@ -88,10 +88,6 @@ STKI-14416-UAS/
 
 ---
 
-Berikut adalah versi perbaikan untuk bagian **Dependencies** agar terlihat lebih rapi dan terstruktur:  
-
----
-
 ## **Dependencies**  
 
 Aplikasi ini membutuhkan beberapa library Python berikut:  
@@ -121,5 +117,3 @@ Untuk menginstal dependensi, jalankan:
 pip install -r requirements.txt  
 ```  
 ---
-
-Jika ada saran atau masukan, silakan hubungi saya melalui [isaaja@example.com](mailto:isaaja@example.com). 😊  
