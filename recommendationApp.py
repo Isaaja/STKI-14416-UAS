@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from modelling import give_recommendation  # Ensure this import is correct
+from modelling.modelling import give_recommendation  # Ensure this import is correct
 
 # Konfigurasi halaman Streamlit
 st.set_page_config(
