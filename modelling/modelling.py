@@ -17,25 +17,7 @@ supabase: Client = create_client(url, key)
 
 # %% Load Data
 fulldata = pd.read_csv('fulldata.csv')
-
-def get_anime_dataset():
-    try:
-         # Mengambil file dari bucket storage
-        response = supabase.storage \
-            .from_('anime') \
-            .download('anime.csv')
-        
-        # Membaca data CSV menggunakan pandas
-        df = pd.read_csv(io.BytesIO(response))
-        
-        return df
-    
-    except Exception as e:
-        print(f"Error: {str(e)}")
-        return None
-
-# Menjalankan fungsi
-anime = get_anime_dataset()
+anime = pd.read_csv('anime.csv')
 
 
 # %% Preprocessing Data

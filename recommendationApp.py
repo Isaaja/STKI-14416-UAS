@@ -3,9 +3,6 @@ import os
 import sys
 import pandas as pd
 
-folder_tujuan_path = os.path.abspath('./modelling')
-sys.path.append(folder_tujuan_path)
-from modelling import give_recommendation,get_anime_dataset
 
 # Konfigurasi halaman Streamlit
 st.set_page_config(
@@ -18,7 +15,7 @@ st.title('Sistem Rekomendasi Anime')
 st.write('List Anime')
 
 # Membaca dataset anime
-df = get_anime_dataset()
+df = pd.read_csv('anime.csv')
 
 # Pilih kolom yang relevan
 dataByColumn = df[["name", "rating","genre"]]
@@ -38,7 +35,10 @@ user_anime = user_input_features()
 
 # Menghasilkan rekomendasi jika input anime diberikan
 if user_anime:
-    # Mengimpor fungsi rekomendasi dari file modelling.py
+   # Mengimpor fungsi rekomendasi dari file modelling.py
+    from modelling import give_recommendation  # Pastikan fungsi ini ada di file modelling.py
+
+    # Memanggil fungsi rekomendasi
     recommendations = give_recommendation(user_anime)
 
     st.write(f"Rekomendasi untuk **{user_anime}**:")
