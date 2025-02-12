@@ -1,8 +1,6 @@
 import streamlit as st
-import os
-import sys
 import pandas as pd
-
+from modelling import give_recommendation  # Ensure this import is correct
 
 # Konfigurasi halaman Streamlit
 st.set_page_config(
@@ -18,7 +16,7 @@ st.write('List Anime')
 df = pd.read_csv('anime.csv')
 
 # Pilih kolom yang relevan
-dataByColumn = df[["name", "rating","genre"]]
+dataByColumn = df[["name", "rating", "genre"]]
 
 # Tampilkan data anime di Streamlit
 st.dataframe(dataByColumn)
@@ -35,9 +33,6 @@ user_anime = user_input_features()
 
 # Menghasilkan rekomendasi jika input anime diberikan
 if user_anime:
-   # Mengimpor fungsi rekomendasi dari file modelling.py
-    from modelling import give_recommendation  # Pastikan fungsi ini ada di file modelling.py
-
     # Memanggil fungsi rekomendasi
     recommendations = give_recommendation(user_anime)
 
