@@ -7,13 +7,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import sigmoid_kernel
 import re
 from rapidfuzz import process, fuzz
-from supabase import create_client, Client
-import io
-
-url = "https://vxwxipjgohswqiylxisz.supabase.co"  # Ganti dengan URL proyek Anda
-key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4d3hpcGpnb2hzd3FpeWx4aXN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY5NTAyNjksImV4cCI6MjA1MjUyNjI2OX0.sUd-bnlBrqXSrB_r1sd7h-es1x04wqLLFZIoJrWkEwE"  # Ganti dengan kunci API
-supabase: Client = create_client(url, key)
-
 
 # %% Load Data
 fulldata = pd.read_csv('fulldata.csv')
@@ -104,32 +97,46 @@ def compute_sigmoid_kernel(tfv_matrix):
 # Map titles to indices
 rec_indices = pd.Series(rec_data.index, index=rec_data["name"]).drop_duplicates()
 
-# Function to get Content-Based recommendations
-def give_recommendation(title):
-    # Search title with fuzzy matching
+# Precompute sigmoid kernel
+sig = compute_sigmoid_kernel(tfv_matrix)
+
+def give_recommendation(title, sig=sig, rec_indices=rec_indices, rec_data=rec_data, anime=anime):
+    """
+    Memberikan rekomendasi anime berdasarkan judul yang diberikan.
+
+    Parameters:
+    - title (str): Judul anime yang ingin dicari rekomendasinya.
+    - sig (np.array): Matriks sigmoid kernel yang sudah dihitung.
+    - rec_indices (pd.Series): Mapping dari judul anime ke indeks.
+    - rec_data (pd.DataFrame): Data anime yang sudah diproses.
+    - anime (pd.DataFrame): Data anime asli.
+
+    Returns:
+    - pd.DataFrame: DataFrame berisi rekomendasi anime.
+    """
+    # Cari judul anime yang cocok dengan fuzzy matching
     title_match = process.extractOne(title, rec_indices.index, scorer=fuzz.ratio)
-    if not title_match or title_match[1] < 70:  # Adjust threshold as needed
-        print("Title not found or match too low in dataset!")
+    if not title_match or title_match[1] < 70:  # Threshold kecocokan
+        print("Judul tidak ditemukan atau kecocokan terlalu rendah!")
         return None
 
     matched_title = title_match[0]
     idx = rec_indices[matched_title]
-    
-    # Compute sigmoid kernel without saving
-    sig = compute_sigmoid_kernel(tfv_matrix)
-    
-    sig_score = list(enumerate(sig[idx]))
-    sig_score = sorted(sig_score, key=lambda x: x[1], reverse=True)[1:11]
-    anime_indices = [i[0] for i in sig_score]
 
-    # Build recommendations DataFrame
-    rec_dic = {"No": range(1, 11),
-               "Anime Name": anime["name"].iloc[anime_indices].values,
-               "Rating": anime["rating"].iloc[anime_indices].values,
-               "Genre": anime["genre"].iloc[anime_indices].values}
-    dataframe = pd.DataFrame(data=rec_dic)
-    dataframe.set_index("No", inplace=True)
+    # Dapatkan skor sigmoid kernel untuk anime yang cocok
+    sig_scores = list(enumerate(sig[idx]))
+    sig_scores = sorted(sig_scores, key=lambda x: x[1], reverse=True)[1:11]  # Ambil 10 rekomendasi teratas
+    anime_indices = [i[0] for i in sig_scores]
 
-    print(f"Recommendations for {matched_title} viewers:\n")
-    print(dataframe)
-    return dataframe
+    # Bangun DataFrame rekomendasi
+    recommendations = pd.DataFrame({
+        "No": range(1, 11),
+        "Anime Name": rec_data["name"].iloc[anime_indices].values,
+        "Rating": rec_data["rating"].iloc[anime_indices].values,
+        "Genre": rec_data["genre"].iloc[anime_indices].values
+    })
+    recommendations.set_index("No", inplace=True)
+
+    print(f"Rekomendasi untuk penonton {matched_title}:\n")
+    print(recommendations)
+    return recommendations
